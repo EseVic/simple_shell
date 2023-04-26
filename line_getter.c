@@ -198,7 +198,7 @@ ssize_t get_input_from_stdin(sh_args *content, char **input_buffer,
  */
 int read_input_line(sh_args *content, char **ptr, size_t *length)
 {
-	char *input_pos, *new_output_str  = NULL, line_end;
+	char *input_pos, *new_output_str  = NULL, *line_end;
 	static char input_buf[READ_BUF_SIZE];
 	static size_t buf_pos, buf_len;
 	size_t line_len;

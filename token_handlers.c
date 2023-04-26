@@ -1,3 +1,6 @@
+#include "shell.h"
+
+
 /**
  * **custom_strtow - takes a string (str) and a delimiter string
  *	(delimiter) as input and then split str into an array of strings
