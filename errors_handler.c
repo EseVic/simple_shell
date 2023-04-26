@@ -1,6 +1,5 @@
 #include "shell.h"
 
-
 /**
  * print_err_mesg - The function writes an
  * error message to the standard error output
