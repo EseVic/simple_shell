@@ -2,7 +2,7 @@
 
 
 /**
- * change_directory - changes the curren
+ * change_directory - changes the current
  *  working directory of the shell
  * @content: struct parameter
  * Desc: getcwd gets the current working directory and
@@ -23,78 +23,100 @@
  */
 int change_directory(sh_args *content)
 {
-    const int buf_size = 1024;
-    int cd_success;
-    char *buff = malloc(buf_size * sizeof(char));
-    char *wrkin_dir = getcwd(buff, buf_size);
-    char *err_msg, *dir = NULL;
+	const int buf_size = 1024;
+	int cd_success;
+	char *buff = malloc(buf_size * sizeof(char));
+	char *wrkin_dir = getcwd(buff, buf_size);
+	 char *err_msg, *dir = NULL;
 
-    if (!buff)
-    {
-        _puts("Error: could not allocate memory\n");
-        return (1);
-    }
-    if (!wrkin_dir)
-    {
-        err_msg = strerror(errno);
-        _puts("Error: ");
-        _puts(err_msg);
-        _putchar('\n');
-        return (1);
-    }
-    if (!content->argv[1])
-        dir = get_default_directory(content);
-    else if (cmpare_strs(content->argv[1], "-") == 0)
-    {
-        dir = get_previous_directory(content, wrkin_dir);
-        if (!dir)
-        {
-            _puts(wrkin_dir);
-            _putchar('\n');
-            return (1);
-        }
-        _puts(dir);
-        _putchar('\n');
-    }
-    else
-        dir = content->argv[1];
-    cd_success = change_directory_helper(content, dir, buff, buf_size);
-    free(buff);
-    return (cd_success);
+	if (!buff)
+	{
+		_puts("Error: could not allocate memory\n");
+		return (1);
+	}
+	if (!wrkin_dir)
+	{
+	err_msg = strerror(errno);
+	_puts("Error: ");
+	_puts(err_msg);
+	_putchar('\n');
+	return (1);
+	}
+	if (!content->argv[1])
+	dir = get_default_directory(content);
+	else if (cmpare_strs(content->argv[1], "-") == 0)
+	{
+	dir = get_previous_directory(content, wrkin_dir);
+	if (!dir)
+	{
+		_puts(wrkin_dir);
+		_putchar('\n');
+		return (1);
+	}
+	_puts(dir);
+	_putchar('\n');
+	}
+	else
+	dir = content->argv[1];
+	cd_success = change_directory_helper(content, dir, buff, buf_size);
+	free(buff);
+	return (cd_success);
+}
+/**
+* get_default_directory - A function that get the default
+* environment of the working directory
+* @content: struct parameter
+* Desc: get default directory gets the default working directory.
+* which is the home environment.
+*
+*  Return: 0 on success
+*/
+char *get_default_directory(sh_args *content)
+{
+	char *dir = getenv_clone(content, "HOME=");
+
+	if (!dir)
+	{
+		dir = getenv_clone(content, "PWD=");
+	}
+	return (dir);
+}
+/**
+* get_previous_directory - A function that gets the
+* previous working environemt of the directory
+* @content: struct paremeter
+* @wrkin_dir: the current working direction
+* Desc: getpwd gets the previous working directory stored in the buffer.
+*
+* Return: 0 on success
+*/
+char *get_previous_directory(sh_args *content, char *wrkin_dir)
+{
+	char *dir = getenv_clone(content, "OLDPWD=");
+
+	if (!dir)
+	{
+	_puts(wrkin_dir);
+	_putchar('\n');
+	return (NULL);
+	}
+	return (dir);
 }
 
-char* get_default_directory(sh_args *content)
+int change_directory_helper(sh_args *content,
+char *dir, char *buff, int buf_size)
 {
-    char *dir = getenv_clone(content, "HOME=");
-    if (!dir)
-        dir = getenv_clone(content, "PWD=");
-    return dir;
-}
+	int cd_success = chdir(dir);
 
-char* get_previous_directory(sh_args *content, char *wrkin_dir)
-{
-    char *dir = getenv_clone(content, "OLDPWD=");
-    if (!dir)
-    {
-        _puts(wrkin_dir);
-        _putchar('\n');
-        return NULL;
-    }
-    return dir;
-}
-
-int change_directory_helper(sh_args *content, char *dir, char *buff, int buf_size)
-{
-    int cd_success = chdir(dir);
-    if (cd_success == -1)
-    {
-        print_err_mesg(content, "can't cd to ");
-        write_with_buffer('\n');
-    }
-    else
-    {
-        env_setter(content, "OLDPWD", getenv_clone(content, "PWD="));
-        env_setter(content, "PWD", getcwd(buff, buf_size));
-    }
-    return cd_success;
+	if (cd_success == -1)
+	{
+		print_err_mesg(content, "can't cd to ");
+		write_with_buffer('\n');
+	}
+	else
+	{
+		env_setter(content, "OLDPWD", getenv_clone(content, "PWD="));
+		env_setter(content, "PWD", getcwd(buff, buf_size));
+	}
+	return (cd_success);
 }
