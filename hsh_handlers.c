@@ -1,231 +1,116 @@
 #include "shell.h"
 
+
 /**
- * custom_shell - custom shell implementation that reads
- * user input, interprets and executes commands
- * @content: struct parameter
- * @arg_v: argument vector
+ * write_string_to_fd - write the string to a stream
+ * @str: string being printed
+ * @fil_des: filedescriptor written to
  *
- * Return: 0 (success), 1 (error)
+ * Return: characters written
  */
-int custom_shell(sh_args *content, char **arg_v)
+int write_string_to_fd(char *str, int fil_des)
 {
-	ssize_t input_result = 0;
-	int builtin_result = 0;
+	int count = 0;
+	char *ptr = str;
 
-	/* Read input from the user, parse it, and execute commands until the user */
-	/* requests to exit the shell or encounters an error */
-	while (builtin_result != -2 && input_result != -1)
+	if (str == NULL)
 	{
-		reset_sh_args(content);
-
-		/* Print the shell prompt if the shell is in interactive mode */
-		if (is_interactive(content))
-		{
-			_puts("$ ");
-		}
-		write_with_buffer(BUF_FLUSH);
-
-		/* Read input from the user and process it */
-		input_result = process_input(content);
-
-		/* Fill the shell arguments struct with command-line arguments */
-		if (input_result != -1)
-		{
-			fill_sh_args(content, arg_v);
-
-			/* Search for and execute built-in commands */
-			builtin_result = search_and_exec_builtin(content);
-			/* If the command is not a built-in command, search for */
-			/* and execute a system command */
-			if (builtin_result == -1)
-			{
-				findAndExecCommand(content);
-			}
-		}
-		else if (is_interactive(content))
-		{
-			_putchar('\n');
-		}
-		free_sh_args(content, 0);
-	}
-	write_shel_histry(content);
-	free_sh_args(content, 1);
-	if (!is_interactive(content) && content->status)
-	{
-		exit(content->status);
-	}
-	/* Exit the shell if the user requested to exit and the shell is in */
-	/* interactive mode, or if a non-zero exit status was returned */
-	if (builtin_result == -2)
-	{
-		if (content->err_num == -1)
-		{
-			exit(content->status);
-		}
-		exit(content->err_num);
+	return (0);
 	}
 
-	/* Return the exit status of the last command executed */
-	return (builtin_result);
+	/* Write the current character to the file descriptor, */
+	/* and add the number of characters written to the count */
+	for ( ; *ptr != '\0'; ptr++)
+	count += write_car_to_fd(*ptr, fil_des);
+
+	return (count);
+}
+
+/**
+ * write_car_to_fd - writes characters to a
+ * file descriptor fil_des in a buffered manner
+ * @car: character being printed
+ * @fil_des: filedescriptor written to
+ *
+ * Return: 1 (success), -1 (error)
+ */
+int write_car_to_fd(int fil_des, char car)
+{
+	static char buffer[WRITE_BUF_SIZE];
+	static int index;
+
+	/* If the character is the BUF_FLUSH character or the buffer is full, */
+	/* write the contents of the buffer to*/
+	/*the file descriptor and reset the index */
+	if (index >= WRITE_BUF_SIZE || car == BUF_FLUSH)
+	{
+		write(fil_des, buffer, index);
+		index = 0;
+	}
+
+	if (car != BUF_FLUSH)
+	{
+		buffer[index++] = car;
+	}
+
+	return (1);
 }
 
 
 /**
- * findAndExecCommand - function finds the path to an executable file
- * based on the command-line arguments and then calls fork_cmd to execute the file
- * @content: struct parameter
+ * prnt_decim_int - print the value of the "feed"
+ * argument as a decimal number i.e base 10
+ * @feed: the input
+ * @fil_des: the filedescriptor to write to
+ * Desc: If the "feed" argument is negative, the function calculates
+ * the absolute value of "feed3" and sets a variable named "absol_val"
+ * to that value. It then prints a minus sign to indicate that th number
+ * is negative, and increments the "count" variable to reflect the fact
+ * that an additional character was printed, then if non-negative, the
+ * function simply sets "absol_val" equal to "feed". To print it
+ * initializes "remaining" to "absol_val", and then using a loop to
+ * iterate through the powers of 10, starting with 1000000000 and dividing
+ * by 10 each time. For each power of 10, the function checks if "absol_val"
+ * is divisible by that power of 10. If it is, it prints the corresponding
+ * digit of "remaining" divided by that power of 10 (using the ASCII code
+ * for the digit), and increments the "count" variable. It then updates
+ * "remaining" to be equal to the remainder of "absol_val" divided by
+ * that power of 10. Then function prints the last digit of "remain"
+ * also using the ASCII code and increments "count" one final time.
+ * It then returns the value of "count",
+ *indicating how many characters were printed
  *
- * Return: nil
+ * Return: printed characters
  */
-void findAndExecCommand(sh_args *content)
+int prnt_decim_int(int feed, int fil_des)
 {
-	char *path = NULL;
-	int index = 0;
-	int non_delim_count = 0;
+	int count = 0;
+	int (*output)(char) = _putchar;
 
-	/* Set path and increase line count if necessary */
-	content->path = content->argv[0];
-	if (content->linecount_flag == 1)
+	/* If the file descriptor is standard error,*/
+	/*use the buffered output function instead */
+	if (fil_des == STDERR_FILENO)
 	{
-	content->line_count++;
-	content->linecount_flag = 0;
+		output = write_with_buffer;
 	}
 
-	/* Count number of non-delimiter arguments */
-	while (content->arg[index])
+	/* If the number is negative, print a '-' sign and negate the number */
+	if (feed < 0)
 	{
-	if (!is_delimiter(content->arg[index], " \t\n"))
-		non_delim_count++;
-		index++;
+		output('-');
+		count++;
+		feed = -feed;
 	}
 
-	/* Return if no non-delimiter arguments */
-	if (!non_delim_count)
-	{
-	return;
-	}
+	/* If the number has more than one digit,*/
+	/*print the leftmost digits recursively */
+	if (feed >= 10)
+	count += prnt_decim_int(feed / 10, fil_des);
 
-	/* Find the executable path */
-	path = find_exec_path(content, getenv_clone(content, "PATH="), content->argv[0]);
+	/* Print the last digit */
+	output('0' + feed % 10);
+	count++;
 
-	/* Execute the command if path exists */
-	if (path)
-	{
-	content->path = path;
-	custom_fork(content);
-	return;
-	}
-
-	/* Check if the file is executable */
-	if ((is_interactive(content) 
-		|| getenv_clone(content, "PATH=")
-		|| content->argv[0][0] == '/') 
-		&& is_file_exec(content, content->argv[0]))
-	{
-	custom_fork(content);
-	return;
-	}
-
-	/* Handle error case */
-	if (*(content->arg) != '\n')
-	{
-	content->status = 127;
-	print_err_mesg(content, "not found\n");
-	}
-}
-
-
-/**
- * custom_fork - forks a system call to create a new process
- * @content: struct parameter
- *
- * Return: nil
- */
-void custom_fork(sh_args *content)
-{
-	int execve_status, wait_status;
-
-	/* Fork the current process and check for errors */
-	pid_t child_pid = fork();
-	if (child_pid == -1)
-	{
-	perror("fork");
-	return;
-	}
-
-	/* If this is the child process, execute the desired program */
-	if (child_pid == 0)
-	{
-		/* Execute the program using the arguments provided by the user */
-	execve_status = execve(content->path, content->argv, environ_getter(content));
-	perror("execve");
-	free_sh_args(content, 1);
-	exit(execve_status == -1 ? 1 : 0);
-	}
-	else
-	{
-		/* If this is the parent process, wait for the child process to exit */
-		waitpid(child_pid, &wait_status, 0);
-		/* If the child process exited normally, store its exit status in the content struct */
-		if (WIFEXITED(wait_status))
-		{
-			content->status = WEXITSTATUS(wait_status);
-		if (content->status == 126)
-		{
-			print_err_mesg(content, "Permission denied\n");
-		}
-		}
-		else
-		{
-			/* If waitpid() failed, store an error status in the content struct and print an error message */
-			content->status = 1;
-			perror("waitpid");
-		}
-	}
-}
-
-
-/**
- * search_and_exec_builtin - searches for a built-in command in a shell program
- * @content: struct parameter
- *
- * Return: -1 (builtin is not found), 0 (builtin is executed),
- * 1 (builtin found but not executed),-2 (builtin signals exit())
- */
-int search_and_exec_builtin(sh_args *content)
-{
-	int builtin_return = -1;
-	int idx = 0;
-
-	/* list of built-in commands */
-	builtin_table builtin_table_list[] = {
-		{"exit", shell_exit},
-		{"env", env_clone},
-		{"help", help_command},
-		{"history", print_command_hist},
-		{"setenv", check_env_setter},
-		{"unsetenv", check_env_unsetenv},
-		{"cd", change_directory},
-		{"alias", alias_clone},
-		{NULL, NULL}
-	};
-
-	/* Loop through the list of built-in commands */
-	while (builtin_table_list[idx].type != NULL)
-	{
-		/* If the first argument matches a built-in command,*/
-		/* execute it and set the return value */
-		if (cmpare_strs(content->argv[0], builtin_table_list[idx].type) == 0)
-		{
-			content->line_count++;
-			builtin_return = builtin_table_list[idx].func(content);
-			break;
-		}
-		idx++;
-	}
-
-	/* Return the return value of the executed*/
-	/*command or -1 if no command was found */
-	return (builtin_return);
+	/* Return the total number of characters printed */
+	return (count);
 }
