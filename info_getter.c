@@ -6,7 +6,7 @@
  * @content: struct parameter
  * @arg_v: argument vector
  */
-void fill_sh_args(sh_args * content, char **arg_v)
+void fill_sh_args(sh_args *content, char **arg_v)
 {
 	int index = 0;
 

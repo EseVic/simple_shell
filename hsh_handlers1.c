@@ -1,45 +1,76 @@
 #include "shell.h"
 
+
 /**
- * is_interactive - checks if shell is in interactive mode
+ * execute_shell - function to execute the custom shell
  * @content: struct parameter
+ * @arg_v: argument vector
  *
- * Return: 1 (is interactive mode)
+ * Return: builtin_result (success)
  */
-int is_interactive(sh_args *content)
+int execute_shell(sh_args *content, char **arg_v)
 {
-	/* Check if stdin is connected to a terminal */
-	int is_stdin_tty = isatty(STDIN_FILENO);
+	ssize_t input_result = 0;
+	int builtin_result = 0;
 
-	/* Check if the file descriptor for the shell's input is less than */
-	/* or equal to 2 (stdin, stdout, or stderr) */
-	int is_readfd_valid = content->readfd <= 2;
+	while (builtin_result != -2 && input_result != -1)
+	{
+		reset_sh_args(content);
 
-	return (is_stdin_tty && is_readfd_valid);
+		if (is_interactive(content))
+		{
+			_puts("$ ");
+		}
+		write_with_buffer(BUF_FLUSH);
+
+		input_result = process_input(content);
+
+		if (input_result != -1)
+		{
+			fill_sh_args(content, arg_v);
+
+			builtin_result = search_and_exec_builtin(content);
+
+			if (builtin_result == -1)
+			{
+				findAndExecCommand(content);
+			}
+		}
+		else if (is_interactive(content))
+		{
+			_putchar('\n');
+		}
+		free_sh_args(content, 0);
+	}
+	write_shel_histry(content);
+	free_sh_args(content, 1);
+	if (!is_interactive(content) && content->status)
+	{
+		exit(content->status);
+	}
+
+	return (builtin_result);
 }
 
 
 /**
- * is_delimiter - checks if a given character is a delimeter character
- * @car: character being check
- * @delimiter: delimeter string
+ * countNonDelimiterArgs - function to count non delimiter arguments
+ * @arg: arument parameter
  *
- * Return: 1 (true), 0 (false)
+ * Return: non_delim_count (success)
  */
-int is_delimiter(char car, char *delim)
+
+int countNonDelimiterArgs(char **arg)
 {
-	size_t idx;
+	int index = 0;
+	int non_delim_count = 0;
 
-	/* Iterate over the delimiter string until a null terminator is reached */
-	for (idx = 0; delim[idx]; ++idx)
+	while (arg[index])
 	{
-		/* If the current delimiter matches the given character, return true */
-	if (car == delim[idx])
-		{
-		return (1);
-	}
+		if (!is_delimiter(arg[index], " \t\n"))
+			non_delim_count++;
+		index++;
 	}
 
-	/* If no delimiter matches the given character, return false */
-	return (0);
+	return (non_delim_count);
 }

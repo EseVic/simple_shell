@@ -159,9 +159,16 @@ int exit_str_to_int(char *);
 
 
 /* exit_checker */
-int change_directory(sh_args *);
 int help_command(sh_args *);
 int shell_exit(sh_args *);
+
+
+/* exit_checker1 */
+int change_directory(sh_args *);
+char *get_default_directory(sh_args *content);
+char *get_previous_directory(sh_args *content, char *wrkin_dir);
+int change_directory_helper(sh_args *content, char *dir,
+		char *buff, int buf_size);
 
 
 /* file-descriptor_handlers */
@@ -171,11 +178,16 @@ int prnt_decim_int(int, int);
 
 
 /* history_getter */
-int load_history(sh_args *content);
 int write_shel_histry(sh_args *content);
 int add_to_history(sh_args *content, char *buf, int linecount);
 char *get_hist_file_path(sh_args *content);
 int update_hist_node_numbrs(sh_args *incontentfo);
+
+
+/* history_getter */
+int load_history(sh_args *content);
+void parse_history(sh_args *content, char *history_buffer, size_t buffer_size);
+void trim_history(sh_args *content);
 
 
 /* history_list */
@@ -187,6 +199,11 @@ int custom_shell(sh_args *, char **);
 void findAndExecCommand(sh_args *);
 void custom_fork(sh_args *);
 int search_and_exec_builtin(sh_args *);
+
+
+/* hsh_handlers */
+int execute_shell(sh_args *content, char **arg_v);
+int countNonDelimiterArgs(char **arg);
 
 
 /* hsh_handlers1 */
