@@ -9,16 +9,21 @@
  */
 int write_with_buffer(char car)
 {
-	static int index;
 	static char buffer[WRITE_BUF_SIZE];
+	static int index;
 
-	if (car == BUF_FLUSH || index >= WRITE_BUF_SIZE)
+	/* If the buffer is full or a flush character is received, */
+	/* write the buffer to the output and reset the index to 0 */
+	if (index >= WRITE_BUF_SIZE || car == BUF_FLUSH)
 	{
 		write(2, buffer, index);
 		index = 0;
 	}
+
 	if (car != BUF_FLUSH)
+	{
 		buffer[index++] = car;
+	}
 	return (index);
 }
 
@@ -32,13 +37,14 @@ int write_with_buffer(char car)
  */
 void write_string_with_buffer(char *str)
 {
-	int index = 0;
+	int index;
 
-	if (!str)
-		return;
-	while (str[index] != '\0')
+	index = 0;
+
+	if (str == NULL)
 	{
-		write_with_buffer(str[index]);
-		index++;
+		return;
 	}
+	for (index = 0; str[index] != '\0'; index++)
+		write_with_buffer(str[index]);
 }
