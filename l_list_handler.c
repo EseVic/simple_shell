@@ -25,40 +25,6 @@ size_t prnt_l_list_str(const l_list *head)
 
 
 /**
- * new_node_to_list - adds a new node to start of linked list
- * @list_head: head node
- * @str: strings
- * @num: index
- *
- * Return: list size
- */
-l_list *new_node_to_list(l_list **list_head, const char *str, int num)
-{
-	l_list *new_node;
-
-	if (!list_head)
-		return (NULL);
-	new_node = malloc(sizeof(l_list));
-	if (!new_node)
-		return (NULL);
-	memset_clone((void *)new_node, 0, sizeof(l_list));
-	new_node->num = num;
-	if (str)
-	{
-		new_node->str = str_dup(str);
-		if (!new_node->str)
-		{
-			free(new_node);
-			return (NULL);
-		}
-	}
-	new_node->link = *list_head;
-	*list_head = new_node;
-	return (new_node);
-}
-
-
-/**
  * new_end_node - adds a new node to the end of a linked list
  * @list_head: head node
  * @str: strings

@@ -79,19 +79,3 @@ int cmpare_strs(char *str1, char *str2)
 	else
 		return (*str1 < *str2 ? -1 : 1);
 }
-
-
-/**
- *is_alphabet - verifies alphabets
- * @target_char: character input
- *
- * Return: 1 (alphabets), 0 (otherwise)
- */
-int is_alphabet(int target_char)
-{
-	if ((target_char >= 'a' && target_char <= 'z') ||
-			(target_char >= 'A' && target_char <= 'Z'))
-		return (1);
-	else
-		return (0);
-}

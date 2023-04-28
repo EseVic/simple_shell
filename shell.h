@@ -190,7 +190,6 @@ int search_and_exec_builtin(sh_args *);
 
 /* hsh_handlers1 */
 int is_interactive(sh_args *);
-int is_alphabet(int);
 int is_delimiter(char, char *);
 
 
@@ -200,13 +199,8 @@ void reset_sh_args(sh_args *);
 void free_sh_args(sh_args *, int);
 
 
-/* int_modifier */
-int custom_atoi_2bedeleted(char *);
-
-
 /* l_list_handler */
 size_t prnt_l_list_str(const l_list *);
-l_list *new_node_to_list(l_list **, const char *, int);
 l_list *new_end_node(l_list **, const char *, int);
 int delete_node_index(l_list **, unsigned int);
 void free_l_list(l_list **);
@@ -258,7 +252,6 @@ char *str_dup(const char *);
 
 /* token_handlers */
 char **custom_strtow(char *, char *);
-char **strtow2(char *, char);
 
 
 /* token_handlers */
