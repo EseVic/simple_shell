@@ -23,39 +23,40 @@
  */
 int env_setter(sh_args *content, char *name, char *value)
 {
-	char *buffer = NULL;
+	int xx = 1, yy = 0, zz = 2;
+	char *buffer = NULL, *str;
 	l_list *node;
-	char *str;
 
-	if (!name || !value)
-		return (0);
+	if (value == NULL || name == NULL)
+		return (yy);
 
 	/* allocates memory for a buffer that is large*/
 	/*enough to hold the name and value of the */
 	/* environment variable, plus an equal sign and a null terminator. */
-	buffer = malloc(len_of_str(name) + len_of_str(value) + 2);
-	if (!buffer)
-		return (1);
+	buffer = malloc(len_of_str(value) + len_of_str(name) + zz);
+	if (buffer == NULL)
+		return (xx);
 	str_cpy(buffer, name);
 	concat_str(buffer, "=");
 	concat_str(buffer, value);
+	/* Traverse the linked list of environment variables to find */
+	/* the variable with the same name as the given name */
 	node = content->env;
-	while (node)
+	for ( ; node != NULL; node = node->link)
 	{
 		str = find_substr_at_start(node->str, name);
-		if (str && *str == '=')
+		if (*str == '=' && str != NULL)
 		{
 			free(node->str);
 			node->str = buffer;
-			content->env_changed = 1;
-			return (0);
+			content->env_changed = xx;
+			return (yy);
 		}
-		node = node->link;
 	}
-	new_end_node(&(content->env), buffer, 0);
+	new_end_node(&(content->env), buffer, yy);
 	free(buffer);
-	content->env_changed = 1;
-	return (0);
+	content->env_changed = xx;
+	return (yy);
 }
 
 
@@ -84,24 +85,34 @@ int unsetenv_clone(sh_args *content, char *var)
 {
 	/* represents the current environment variables */
 	l_list *node = content->env;
-	size_t index = 0;
+	size_t index, yy;
 	char *ptr;
 
-	if (!node || !var)
-		return (0);
+	index = 0;
+	yy = 0;
 
-	while (node)
+	if (var == NULL || !node)
 	{
+		return (yy);
+	}
+
+	/* Loop thu l list of env vars until d end of d list is reached */
+	for ( ; node; index++)
+	{
+		/* Find the first occurrence of the input string at */
+		/* the start of the current string in the linked list */
 		ptr = find_substr_at_start(node->str, var);
-		if (ptr && *ptr == '=')
+		if (*ptr == '=' && ptr != NULL)
 		{
+			/* Delete the current node from the linked list, */
+			/* set env_vars_changed to 1 */
+			/* and reset the index and node variables */
 			content->env_changed = delete_node_index(&(content->env), index);
-			index = 0;
+			index = yy;
 			node = content->env;
 			continue;
 		}
 		node = node->link;
-		index++;
 	}
 	return (content->env_changed);
 }
@@ -125,10 +136,14 @@ int unsetenv_clone(sh_args *content, char *var)
  */
 char **environ_getter(sh_args *content)
 {
-	if (!content->environ || content->env_changed)
+	int yy = 0;
+
+	if (content->env_changed || content->environ == NULL)
 	{
 		content->environ = conv_list_to_strings(content->env);
-		content->env_changed = 0;
+
+		/* reset the env_vars_changed flag */
+		content->env_changed = yy;
 	}
 
 	return (content->environ);
