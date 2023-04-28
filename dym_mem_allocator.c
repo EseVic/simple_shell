@@ -24,28 +24,32 @@ prev_mem_size, unsigned int new_mem_size)
 {
 	char *new_ptr;
 
-	if (!first_ptr)
+	if (first_ptr == NULL)
+	{
 		return (malloc(new_mem_size));
-
+	}
 	/* deallocates "new size" if memory block is zero */
 	if (!new_mem_size)
+	{
 		return (free(first_ptr), NULL);
-
+	}
 	/* if the new size of the memory block is equal to the old size. */
 	/* If it is, then there's no need to resize the memory block */
-	if (new_mem_size == prev_mem_size)
+	if (prev_mem_size == new_mem_size)
+	{
 		return (first_ptr);
-
+	}
 	new_ptr = malloc(new_mem_size);
-
-	if (!new_ptr)
+	if (new_ptr == NULL)
+	{
 		return (NULL);
-
+	}
 	prev_mem_size = prev_mem_size < new_mem_size ? prev_mem_size : new_mem_size;
 
 	while (prev_mem_size--)
 		new_ptr[prev_mem_size] = ((char *)first_ptr)[prev_mem_size];
 	free(first_ptr);
+
 	return (new_ptr);
 }
 
@@ -63,8 +67,15 @@ char *memset_clone(char *ptr, char value, unsigned int num)
 {
 	unsigned int x;
 
-	for (x = 0; x < num; x++)
+	x = 0;
+
+	/* Set each byte of the memory block to the given value */
+	while  (num > x)
+	{
 		ptr[x] = value;
+		x++;
+	}
+
 	return (ptr);
 }
 
@@ -74,29 +85,42 @@ char *memset_clone(char *ptr, char value, unsigned int num)
  */
 void multi_free(char **str_ptr)
 {
-	char **my_strings = str_ptr;
+	char **my_strings;
 
-	if (!str_ptr)
+	my_strings = str_ptr;
+
+	if (str_ptr == NULL)
+	{
 		return;
-	while (*str_ptr)
+	}
+
+	while (*str_ptr != NULL)
+	{
 		free(*str_ptr++);
+	}
+
 	free(my_strings);
 }
 
 
 /**
  * free_n_NULL - free the memory pointed to by
- * @p: pointer address being freed
+ * @ptr: pointer address being freed
  *
  * Return: 1 (freed), 0 (otherwise)
  */
-int free_n_NULL(void **p)
+int free_n_NULL(void **ptr)
 {
-	if (p && *p)
+	int is_freed = 1;
+
+	/* Check if pointer is not NULL and points to a valid memory location */
+	if (*ptr != NULL && ptr != NULL)
 	{
-		free(*p);
-		*p = NULL;
-		return (1);
+		free(*ptr);
+		*ptr = NULL;
+
+		/* Set flag to indicate that memory has been freed */
+		return (is_freed);
 	}
 	return (0);
 }
