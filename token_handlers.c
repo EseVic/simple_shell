@@ -6,35 +6,92 @@
  *	(delimiter) as input and then split str into an array of strings
  * @str: the input string
  * @delimiter: the delimeter string
- *
  * Return: a pointer to an array of strings, or NULL on failure
  */
 char **custom_strtow(char *str, char *delimiter)
 {
-	int word_count = count_words(str, delimiter);
-	char **substrings = allocate_substrings(word_count);
+	int i, j, k, m, word_count = 0;
+	char **substrings;
+
+	if (str == NULL || str[0] == 0)
+		return (NULL);
+	if (!delimiter)
+		delimiter = " ";
+	for (i = 0; str[i] != '\0'; i++)
+		if (!is_delimiter(str[i], delimiter) &&
+				(is_delimiter(str[i + 1], delimiter) || !str[i + 1]))
+			word_count++;
 
 	if (word_count == 0)
 		return (NULL);
-
-	if (substrings == NULL)
+	substrings = malloc((1 + word_count) * sizeof(char *));
+	if (!substrings)
 		return (NULL);
-
-	fill_substrings(str, delimiter, substrings, word_count);
-
+	for (i = 0, j = 0; j < word_count; j++)
+	{
+		while (is_delimiter(str[i], delimiter))
+			i++;
+		k = 0;
+		while (!is_delimiter(str[i + k], delimiter) && str[i + k])
+			k++;
+		substrings[j] = malloc((k + 1) * sizeof(char));
+		if (!substrings[j])
+		{
+			for (k = 0; k < j; k++)
+				free(substrings[k]);
+			free(substrings);
+			return (NULL);
+		}
+		for (m = 0; m < k; m++)
+			substrings[j][m] = str[i++];
+		substrings[j][m] = 0;
+	}
+	substrings[j] = NULL;
 	return (substrings);
 }
 
+
 /**
- * handle_sigInt - handle signal calls when user presses Ctrl+C
- * @unused_signal_num: indicates the signal number that
- *	triggered the signal handler
- *
- * Return: nil
+ * **strtow2 - splits a string into words
+ * @str: the input string
+ * @delimiter: the delimeter
+ * Return: a pointer to an array of strings, or NULL on failure
  */
-void handle_sigInt(__attribute__((unused))int unused_signal_num)
+char **strtow2(char *str, char delimiter)
 {
-	/* handles promting to the cmd*/
-	_puts("\n$ ");
-	_putchar(BUF_FLUSH);
+	int i, j, k, m, word_count = 0;
+	char **substrings;
+
+	if (str == NULL || str[0] == 0)
+		return (NULL);
+	for (i = 0; str[i] != '\0'; i++)
+		if ((str[i] != delimiter && str[i + 1] == delimiter) ||
+		    (str[i] != delimiter && !str[i + 1]) || str[i + 1] == delimiter)
+			word_count++;
+	if (word_count == 0)
+		return (NULL);
+	substrings = malloc((1 + word_count) * sizeof(char *));
+	if (!substrings)
+		return (NULL);
+	for (i = 0, j = 0; j < word_count; j++)
+	{
+		while (str[i] == delimiter && str[i] != delimiter)
+			i++;
+		k = 0;
+		while (str[i + k] != delimiter && str[i + k] && str[i + k] != delimiter)
+			k++;
+		substrings[j] = malloc((k + 1) * sizeof(char));
+		if (!substrings[j])
+		{
+			for (k = 0; k < j; k++)
+				free(substrings[k]);
+			free(substrings);
+			return (NULL);
+		}
+		for (m = 0; m < k; m++)
+			substrings[j][m] = str[i++];
+		substrings[j][m] = 0;
+	}
+	substrings[j] = NULL;
+	return (substrings);
 }

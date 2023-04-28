@@ -2,8 +2,8 @@
 
 
 /**
- * find_substr_at_start - the string str_to_search starts with
- * the substring substring
+ * find_substr_at_start - the string str_to_search starts with the
+ *	substring substring
  * @str_to_search: searched string
  * @substring: substring being searched
  *
@@ -11,20 +11,9 @@
  */
 char *find_substr_at_start(const char *str_to_search, const char *substring)
 {
-	/* Iterate through the substring until the end */
-	/* of the substring is reached */
-	/* while also iterating through the string to search */
-	for (; *substring != '\0'; substring++, str_to_search++)
-	{
-		/* If the current character in the substring */
-		/* doesn't match the current */
-		/* character in the string to search, return NULL */
-		/* (no match found) */
-		if (*substring != *str_to_search)
-		{
+	while (*substring)
+		if (*substring++ != *str_to_search++)
 			return (NULL);
-		}
-	}
 	return ((char *)str_to_search);
 }
 
@@ -38,11 +27,12 @@ char *find_substr_at_start(const char *str_to_search, const char *substring)
 int len_of_str(char *str)
 {
 	int idx = 0;
-	/* Keep incrementing the index until the end of */
-	/* the string is reached */
-	while (str[idx] != '\0')
-		idx++;
 
+	if (!str)
+		return (0);
+
+	while (*str++)
+		idx++;
 	return (idx);
 }
 
@@ -56,28 +46,20 @@ int len_of_str(char *str)
  */
 char *concat_str(char *str_dest, char *str_src)
 {
-	char *result;
+	char *result = str_dest;
 
-	result = str_dest;
-
-	/* find the end of str_dest */
-	do {
+	while (*str_dest)
 		str_dest++;
-	} while (*str_dest != '\0');
-
-	/* concatenate str_src to str_dest */
-	do {
+	while (*str_src)
 		*str_dest++ = *str_src++;
-	} while (*str_dest != '\0');
-
 	*str_dest = *str_src;
 	return (result);
 }
 
 
 /**
- * cmpare_strs - compare two strings, str1 and str2, and
- *	return an integer value indicating their relative order
+ * cmpare_strs - compare two strings, str1 and str2, and return an
+ *	integer value indicating their relative order
  * @str1: first string
  * @str2: second string
  *
@@ -85,21 +67,31 @@ char *concat_str(char *str_dest, char *str_src)
  */
 int cmpare_strs(char *str1, char *str2)
 {
-	/* Loop through both strings until one of them reaches its end */
-	for ( ; *str1 && *str2; str1++, str2++)
+	while (*str1 && *str2)
 	{
-		/* If the characters at the current position */
-		/* are not equal, return the difference between them */
 		if (*str1 != *str2)
 			return (*str1 - *str2);
+		str1++;
+		str2++;
 	}
-
-	/* If both strings are equal up to the length of the */
-	/* shorter string, return zero */
 	if (*str1 == *str2)
 		return (0);
-	/* Otherwise, return -1 if str1 is less than str2, or 1 */
-	/* if str1 is greater than str2 */
 	else
 		return (*str1 < *str2 ? -1 : 1);
+}
+
+
+/**
+ *is_alphabet - verifies alphabets
+ * @target_char: character input
+ *
+ * Return: 1 (alphabets), 0 (otherwise)
+ */
+int is_alphabet(int target_char)
+{
+	if ((target_char >= 'a' && target_char <= 'z') ||
+			(target_char >= 'A' && target_char <= 'Z'))
+		return (1);
+	else
+		return (0);
 }

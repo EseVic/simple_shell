@@ -2,8 +2,8 @@
 
 
 /**
- * find_exec_path - finds the full path of a command within
- *	a list of directories provided in the dirctry_list
+ * find_exec_path - finds the full path of a command within a
+ *	list of directories provided in the dirctry_list
  * @content: struct content
  * @dirctry_list: string path
  * @command: command
@@ -12,13 +12,12 @@
  */
 char *find_exec_path(sh_args *content, char *dirctry_list, char *command)
 {
+	int path_index = 0, prev_index = 0;
 	char *full_path;
-	int path_index = 0;
-	int prev_index = 0;
 
 	if (!dirctry_list)
 		return (NULL);
-	if (find_substr_at_start(command, "./") && (len_of_str(command) > 2))
+	if ((len_of_str(command) > 2) && find_substr_at_start(command, "./"))
 	{
 		if (is_file_exec(content, command))
 			return (command);
@@ -36,13 +35,10 @@ char *find_exec_path(sh_args *content, char *dirctry_list, char *command)
 				concat_str(full_path, "/");
 				concat_str(full_path, command);
 			}
-
 			if (is_file_exec(content, full_path))
 				return (full_path);
-
 			if (!dirctry_list[path_index])
 				break;
-			/* Otherwise, update prev_index to path_index */
 			prev_index = path_index;
 		}
 		path_index++;
@@ -62,57 +58,37 @@ int is_file_exec(sh_args *content, char *file_path)
 {
 	struct stat file_info;
 
-	/* Ignore the 'content' parameter (unused) */
 	(void)content;
-
-	/* If the file path is null or the stat() function fails, return 0 */
-	if (stat(file_path, &file_info) || !file_path)
-	{
+	if (!file_path || stat(file_path, &file_info))
 		return (0);
-	}
 
-	/* If the file is a regular file, return 1 */
 	if (file_info.st_mode & S_IFREG)
+	{
 		return (1);
-
+	}
 	return (0);
 }
 
 
 /**
- * copy_chars_without_delimiter - duplicates chars while
- *	removing any delimiters
+ * copy_chars_without_delimiter - duplicates chars while removing any
+ *	delimiters
  * @pathstr: string path
  * @start_index: start index
  * @stop_index: stop index
  *
  * Return: pointer to new buffer
  */
-char *copy_chars_without_delimiter(char *pathstr,
-		int start_index, int stop_index)
+char *copy_chars_without_delimiter(char *pathstr, int start_index,
+		int stop_index)
 {
 	static char buffer[1024];
-	int dest_index = 0;
-	int source_index = 0;
+	int source_index = 0, dest_index = 0;
 
-	source_index = start_index;
-	/* loop through each character in the string within the given range */
-	while (source_index < stop_index)
-	{
-		/* check if the current character is not a delimiter (':') */
+	for (dest_index = 0, source_index = start_index;
+			source_index < stop_index; source_index++)
 		if (pathstr[source_index] != ':')
-		{
-			/* copy if the current character is not a delimiter */
-			buffer[dest_index] = pathstr[source_index];
-
-			/* move to the next position in the buffer array */
-			dest_index++;
-		}
-		/* move to the next character in the string */
-		source_index++;
-	}
-
-	/* add null term at end of the copied characters in the buffer array */
+			buffer[dest_index++] = pathstr[source_index];
 	buffer[dest_index] = 0;
 	return (buffer);
 }

@@ -11,7 +11,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <stdbool.h>
 
 
 /* when using system getline() */
@@ -58,27 +57,26 @@ typedef struct l_list
 	struct l_list *link;
 } l_list;
 
-
 /**
  *struct shell_args - stores arguments and environment variables for a shell
- *@arg: command to be executed
- *@argv: array of pointers to the arguments for the command
- *@path: path to the command
- *@argc: number of arguments for the command
- *@line_count: number of lines in the command
- *@err_num: error number if the command fails
- *@linecount_flag: flag indicating if the command is a line count command
- *@fname: name of the file for the command
- *@env: array of pointers to the environment variables
- *@environ: linked list of environment variables
- *@history: linked list of previous commands
- *@alias: linked list of aliases
- *@env_changed: flag show if the environment variables have been changed
- *@status: exit status of the command
- *@cmd_buf: pointer to a buffer that stores the command chain
- *@cmd_buf_type: type of the command chain
- *@readfd: file descriptor for the command
- *@histcount: number of commands in the history
+ * @arg: command to be executed
+ * @argv: array of pointers to the arguments for the command
+ * @path: path to the command
+ * @argc: number of arguments for the command
+ * @line_count: number of lines in the command
+ * @err_num: error number if the command fails
+ * @linecount_flag: flag indicating if the command is a line count command
+ * @fname: name of the file for the command
+ * @env: array of pointers to the environment variables
+ * @environ: linked list of environment variables
+ * @history: linked list of previous commands
+ * @alias: linked list of aliases
+ * @env_changed: flag show if the environment variables have been changed
+ * @status: exit status of the command
+ * @cmd_buf: pointer to a buffer that stores the command chain
+ * @cmd_buf_type: type of the command chain
+ * @readfd: file descriptor for the command
+ * @histcount: number of commands in the history
  */
 typedef struct shell_args
 {
@@ -96,6 +94,7 @@ typedef struct shell_args
 	char **environ;
 	int env_changed;
 	int status;
+
 	char **cmd_buf;
 	int cmd_buf_type;
 	int readfd;
@@ -159,16 +158,9 @@ int exit_str_to_int(char *);
 
 
 /* exit_checker */
+int change_directory(sh_args *);
 int help_command(sh_args *);
 int shell_exit(sh_args *);
-
-
-/* exit_checker1 */
-int change_directory(sh_args *);
-char *get_default_directory(sh_args *content);
-char *get_previous_directory(sh_args *content, char *wrkin_dir);
-int change_directory_helper(sh_args *content, char *dir,
-		char *buff, int buf_size);
 
 
 /* file-descriptor_handlers */
@@ -178,16 +170,11 @@ int prnt_decim_int(int, int);
 
 
 /* history_getter */
+int load_history(sh_args *content);
 int write_shel_histry(sh_args *content);
 int add_to_history(sh_args *content, char *buf, int linecount);
 char *get_hist_file_path(sh_args *content);
 int update_hist_node_numbrs(sh_args *incontentfo);
-
-
-/* history_getter */
-int load_history(sh_args *content);
-void parse_history(sh_args *content, char *history_buffer, size_t buffer_size);
-void trim_history(sh_args *content);
 
 
 /* history_list */
@@ -201,13 +188,9 @@ void custom_fork(sh_args *);
 int search_and_exec_builtin(sh_args *);
 
 
-/* hsh_handlers */
-int execute_shell(sh_args *content, char **arg_v);
-int countNonDelimiterArgs(char **arg);
-
-
 /* hsh_handlers1 */
 int is_interactive(sh_args *);
+int is_alphabet(int);
 int is_delimiter(char, char *);
 
 
@@ -217,8 +200,13 @@ void reset_sh_args(sh_args *);
 void free_sh_args(sh_args *, int);
 
 
+/* int_modifier */
+int custom_atoi_2bedeleted(char *);
+
+
 /* l_list_handler */
 size_t prnt_l_list_str(const l_list *);
+l_list *new_node_to_list(l_list **, const char *, int);
 l_list *new_end_node(l_list **, const char *, int);
 int delete_node_index(l_list **, unsigned int);
 void free_l_list(l_list **);
@@ -260,6 +248,7 @@ int len_of_str(char *);
 char *concat_str(char *, char *);
 int cmpare_strs(char *, char *);
 
+
 /* string_handlers2 */
 int _putchar(char);
 void _puts(char *);
@@ -269,6 +258,7 @@ char *str_dup(const char *);
 
 /* token_handlers */
 char **custom_strtow(char *, char *);
+char **strtow2(char *, char);
 
 
 /* token_handlers */
@@ -277,5 +267,6 @@ int detect_command_chaining(sh_args *, char *, size_t *);
 int replaceStr_Contnt(char **, char *);
 int replace_alias_with_value(sh_args *);
 int replace_var_values(sh_args *);
+
 
 #endif /* MAIN_H */
