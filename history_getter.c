@@ -1,5 +1,55 @@
 #include "shell.h"
 
+/**
+ * load_history - reads command history
+ * from a file and add it to a history buffer
+ * @content: struct parameter
+ *
+ * Return: histcount (success), 0 (error)
+ */
+int load_history(sh_args *content)
+{
+	int index, last_newline = 0, linecount = 0;
+	ssize_t fil_des, read_len, fil_size = 0;
+	struct stat file_stats;
+	char *buffer = NULL, *history_file = get_hist_file_path(content);
+
+	if (!history_file)
+		return (0);
+
+	fil_des = open(history_file, O_RDONLY);
+	free(history_file);
+	if (fil_des == -1)
+		return (0);
+	if (!fstat(fil_des, &file_stats))
+		fil_size = file_stats.st_size;
+	if (fil_size < 2)
+		return (0);
+	buffer = malloc(sizeof(char) * (fil_size + 1));
+	if (!buffer)
+		return (0);
+	read_len = read(fil_des, buffer, fil_size);
+	buffer[fil_size] = 0;
+	if (read_len <= 0)
+		return (free(buffer), 0);
+	close(fil_des);
+	for (index = 0; index < fil_size; index++)
+		if (buffer[index] == '\n')
+		{
+			buffer[index] = 0;
+			add_to_history(content, buffer + last_newline, linecount++);
+			last_newline = index + 1;
+		}
+	if (last_newline != index)
+		add_to_history(content, buffer + last_newline, linecount++);
+	free(buffer);
+	content->histcount = linecount;
+	while (content->histcount-- >= HIST_MAX)
+		delete_node_index(&(content->history), 0);
+	update_hist_node_numbrs(content);
+	return (content->histcount);
+}
+
 
 /**
  * write_shel_histry - creates a file to store
@@ -10,48 +60,32 @@
  */
 int write_shel_histry(sh_args *content)
 {
-	/* gets the path to the history file */
+	ssize_t fil_des;
 	char *history_file = get_hist_file_path(content);
-	int file_des;
-	l_list *node;
+	l_list *node = NULL;
 
 	if (!history_file)
-	{
 		return (-1);
-	}
 
-	/* Open the history file for writing*/
-	/* truncating it if it exists, with 0644 permissions */
-	file_des = open(history_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-
+	fil_des = open(history_file, O_CREAT | O_TRUNC | O_RDWR, 0644);
 	free(history_file);
-
-	if (file_des == -1)
-	{
+	if (fil_des == -1)
 		return (-1);
-	}
-
-	/* Iterate through the history linked list*/
-	/*and write each line to the file */
-	node = content->history;
-	while (node != NULL)
+	for (node = content->history; node; node = node->link)
 	{
-		write_string_to_fd(node->str, file_des);
-		write_car_to_fd('\n', file_des);
-		node = node->link;
+		write_string_to_fd(node->str, fil_des);
+		write_car_to_fd('\n', fil_des);
 	}
-
-	/* Write a flush character to the file to ensure all data is written */
-	write_car_to_fd(BUF_FLUSH, file_des);
-	close(file_des);
-
+	write_car_to_fd(BUF_FLUSH, fil_des);
+	close(fil_des);
 	return (1);
 }
 
 
 /**
- * add_to_history - builds a history list by adding a new node
- * at the end of the linked list pointed to by content->history
+ * add_to_history - builds a history list by adding
+ * a new node at the end of the linked list pointed to by
+ *	content->history
  * @content: struct parameter
  * @buffer: buffer
  * @linecount: history linecount, histcount
@@ -60,19 +94,14 @@ int write_shel_histry(sh_args *content)
  */
 int add_to_history(sh_args *content, char *buffer, int linecount)
 {
-	l_list **tail_ptr = &(content->history);
-	/* checks that the arguments are valid */
-	if (content == NULL || buffer == NULL)
-	return (-1);
+	l_list *node = NULL;
 
-	/* traverses the linked list until we reach the end */
-	for ( ; *tail_ptr != NULL; tail_ptr = &((*tail_ptr)->link))
-	{
+	if (content->history)
+		node = content->history;
+	new_end_node(&node, buffer, linecount);
 
-	}
-
-	/* creates a new node and add it to the end of the list */
-	new_end_node(tail_ptr, buffer, linecount);
+	if (!content->history)
+		content->history = node;
 	return (0);
 }
 
@@ -87,39 +116,24 @@ char *get_hist_file_path(sh_args *content)
 {
 	char *buffer, *home;
 
-
-	/* Get the value of the HOME environment variable */
 	home = getenv_clone(content, "HOME=");
-	if (home == NULL)
-	{
+	if (!home)
 		return (NULL);
-	}
-
-	/* Calculate the lenght of the buffr needed to store the path*/
 	buffer = malloc(sizeof(char) * (len_of_str(home)
 		+ len_of_str(HIST_FILE) + 2));
-	if (buffer == NULL)
-	{
+	if (!buffer)
 		return (NULL);
-	}
-
 	buffer[0] = 0;
-
-	/* Copy the home directory path to the buffer */
 	str_cpy(buffer, home);
-
-	/* Add a '/' character to the end of the path */
 	concat_str(buffer, "/");
-
-	/* Copy the history file name to the buffer, starting after the '/' */
 	concat_str(buffer, HIST_FILE);
 	return (buffer);
 }
 
 
 /**
- * update_hist_node_numbrs - renumbers the
- * nodes in a linked list of history items
+ * update_hist_node_numbrs - renumbers
+ * the nodes in a linked list of history items
  * @content: struct parameter
  *
  * Return: total number of nodes in the linked list
@@ -127,15 +141,13 @@ char *get_hist_file_path(sh_args *content)
  */
 int update_hist_node_numbrs(sh_args *content)
 {
-	int idx = 0;
-	l_list *node;
+	l_list *node = content->history;
+	int i = 0;
 
-	/* Iterate through the linked list starting from the head node */
-	for (node = content->history; node; node = node->link)
-	node->num = idx++;
-
-	/* Update the number of nodes in the linked list*/
-	/* and return the total number of nodes */
-	content->histcount = idx;
-	return (idx);
+	while (node)
+	{
+		node->num = i++;
+		node = node->link;
+	}
+	return (content->histcount = i);
 }
