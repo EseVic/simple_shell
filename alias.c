@@ -61,11 +61,11 @@ int remv_alias(sh_args *content, char *str)
 	str_p = car_finder(str, '=');
 	if (!str_p)
 		return (1);
-	*copy = *str_p;
+	copy = *str_p;
 	*str_p = 0;
 	remover = delete_node_index(&(content->alias),
-		find_node_index(content->alias, get_first_node
-			_with_prefix(content->alias, str, -1)));
+		find_node_index(content->alias,
+		get_first_node_with_prefix(content->alias, str, -1)));
 	*str_p = copy;
 	return (remover);
 }
