@@ -17,22 +17,22 @@
  */
 int alias_to_str(sh_args *content, char *str)
 {
-	char *str_p;
-
-	str_p = car_finder(str, '=');
+	/* Find the equals sign in the string */
+	char *str_p = car_finder(str, '=');
 
 	if (str_p == NULL)
 	{
 		return (1);
 	}
-
+	/* If the value part of the alias is not empty, add or */
+	/* update the alias in the structure */
 	if (!*++str_p)
 	{
 		return (remv_alias(content, str));
 	}
 
 	remv_alias(content, str);
-
+	/* Add the new alias to the end of the list */
 	return (new_end_node(&(content->alias), str, 0) == NULL);
 }
 
@@ -55,17 +55,25 @@ int alias_to_str(sh_args *content, char *str)
  */
 int remv_alias(sh_args *content, char *str)
 {
-	char *str_p, copy;
+	/* Find the position of the '=' character in the input string */
 	int remover;
+	char copy;
+	char *str_p = car_finder(str, '=');
 
-	str_p = car_finder(str, '=');
 	if (!str_p)
+	{
 		return (1);
+	}
+	/* Temporarily replace the '=' character with a null terminator */
 	copy = *str_p;
 	*str_p = 0;
+
+	 /* Get d index of d first node in d alias list that matches the prefix */
+	/* Delete the node at the given index from the alias list */
 	remover = delete_node_index(&(content->alias),
 		find_node_index(content->alias,
 		get_first_node_with_prefix(content->alias, str, -1)));
+	/* Restore the '=' character to the input string */
 	*str_p = copy;
 	return (remover);
 }
@@ -80,17 +88,24 @@ int remv_alias(sh_args *content, char *str)
  */
 int alias_printer(l_list *node)
 {
-	char *p = NULL, *a = NULL;
+	char *equal_sign_ptr = NULL;
+	char *c_ptr = NULL;
 
-	if (node)
+	if (node != NULL)
 	{
-		p = car_finder(node->str, '=');
+		equal_sign_ptr = car_finder(node->str, '=');
+
 		/* printing chars before "=" */
-		for (a = node->str; a <= p; a++)
-			_putchar(*a);
+		c_ptr = node->str;
+		while (c_ptr <= equal_sign_ptr)
+		{
+			_putchar(*c_ptr);
+			c_ptr++;
+		}
 		_putchar('\'');
+
 		/* printing the remaining chars after "=" */
-		_puts(p + 1);
+		_puts(equal_sign_ptr + 1);
 		_puts("'\n");
 		return (0);
 	}
@@ -105,30 +120,28 @@ int alias_printer(l_list *node)
  */
 int alias_clone(sh_args *content)
 {
-	int i = 0;
-	char *p = NULL;
+	int idx = 0;
+	char *car = NULL;
 	l_list *node = NULL;
 
 	if (content->argc == 1)
 	{
 		/* prints the node while iterating through the linked list */
 		node = content->alias;
-		while (node)
-		{
+		for ( ; node != NULL; node = node->link)
 			alias_printer(node);
-			node = node->link;
-		}
 		return (0);
 	}
-
-	for (i = 1; content->argv[i]; i++)
+	idx = 1;
+	while (content->argv[idx])
 	{
-		p = car_finder(content->argv[i], '=');
-		if (p)
-			alias_to_str(content, content->argv[i]);
+		car = car_finder(content->argv[idx], '=');
+		if (car != NULL)
+			alias_to_str(content, content->argv[idx]);
 		else
 			alias_printer(get_first_node_with_prefix(
-				content->alias, content->argv[i], '='));
+				content->alias, content->argv[idx], '='));
+		idx++;
 	}
 
 	return (0);
