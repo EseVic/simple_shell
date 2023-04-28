@@ -16,7 +16,7 @@ int is_interactive(sh_args *content)
  * is_delimiter - checks if a given
  * character is a delimeter character
  * @car: character being check
- * @delimiter: delimeter string
+ * @delim: delimeter string
  *
  * Return: 1 (true), 0 (false)
  */
