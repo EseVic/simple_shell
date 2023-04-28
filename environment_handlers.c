@@ -10,14 +10,22 @@
  */
 int check_env_setter(sh_args *content)
 {
+	int xx = 0, yy = 1;
+
+	/* check if number of arguments is correct */
 	if (content->argc != 3)
 	{
-		write_string_with_buffer("Incorrect number of arguements\n");
-		return (1);
+		/* if number of arguments is incorrect, print error message */
+		write_string_with_buffer("Error in number of arguements\n");
+		return (yy);
 	}
+
+	/* if arguments are correct, try to set env var using env_setter function */
 	if (env_setter(content, content->argv[1], content->argv[2]))
-		return (0);
-	return (1);
+	{
+		return (xx);
+	}
+	return (yy);
 }
 
 /**
@@ -29,16 +37,21 @@ int check_env_setter(sh_args *content)
  */
 int check_env_unsetenv(sh_args *content)
 {
-	int index;
+	int idx;
 
 	if (content->argc == 1)
 	{
+		/* Prints errors */
 		write_string_with_buffer("Too few arguements.\n");
 		return (1);
 	}
-	for (index = 1; index <= content->argc; index++)
-		unsetenv_clone(content, content->argv[index]);
 
+	for (idx = 1; idx <= content->argc; idx++)
+	{
+		/* calls d unsetenv_clone function with d args in the struct sh_args */
+		/* and the command-line argument at the current index */
+		unsetenv_clone(content, content->argv[idx]);
+	}
 	return (0);
 }
 
@@ -53,11 +66,14 @@ int check_env_unsetenv(sh_args *content)
  */
 int populat_listof_env(sh_args *content)
 {
+	size_t idx;
 	l_list *node = NULL;
-	size_t i;
 
-	for (i = 0; environ[i]; i++)
-		new_end_node(&node, environ[i], 0);
+	for (idx = 0; environ[idx]; idx++)
+	{
+		new_end_node(&node, environ[idx], 0);
+	}
+
 	content->env = node;
 	return (0);
 }
@@ -71,8 +87,11 @@ int populat_listof_env(sh_args *content)
  */
 int env_clone(sh_args *content)
 {
+	int xx = 0;
+	/* Extract the environment variables from d sh_args struct and prints */
 	prnt_l_list_str(content->env);
-	return (0);
+
+	return (xx);
 }
 
 
@@ -87,15 +106,18 @@ int env_clone(sh_args *content)
  */
 char *getenv_clone(sh_args *content, const char *name)
 {
-	l_list *node = content->env;
-	char *p;
+	char *ptr;
+	l_list *node;
+
+	node = content->env;
 
 	while (node)
 	{
-		p = find_substr_at_start(node->str, name);
-		if (p && *p)
-			return (p);
+		ptr = find_substr_at_start(node->str, name);
+		if (ptr && *ptr)
+			return (ptr);
 		node = node->link;
 	}
+
 	return (NULL);
 }
